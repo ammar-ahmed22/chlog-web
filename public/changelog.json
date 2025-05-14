@@ -6,9 +6,10 @@
     "to_ref": "v0.2.0",
     "changes": [
       {
-        "title": "Support optional YAML config file for changelog generation flags",
-        "description": "The generate command now accepts an optional YAML configuration file (e.g., chlog.yaml) to set flag values for changelog generation. This allows users to specify default arguments in a config file, which are loaded and applied automatically, improving usability and centralizing configuration.",
-        "impact": "Users can now provide an optional configuration file to set default flag values, reducing the need to specify flags via command line every time and enabling easier customization and automation for changelog generation.",
+        "id": "support-optional-config-file-for-generate",
+        "title": "Support optional config file for generate command flags",
+        "description": "The changelog generation command now supports the use of an optional YAML config file to set flag values for the generate process. This allows users to define default behaviors and reduces the need for repetitive command-line flag specifications.",
+        "impact": "Users can now specify configuration parameters for changelog generation in a YAML file which will be automatically loaded if present, simplifying configuration management and making releases easier to handle.",
         "commits": [
           "c08bd2429546546d992c5364338051d0a5d4edf6"
         ],
@@ -17,14 +18,16 @@
         ]
       },
       {
-        "title": "Include version, date, and Git range in changelog entries",
-        "description": "Changelog entries now include explicit fields for the version, date, and Git range (from and to commit references). These fields are set manually during generation, ensuring the changelog entries have structured metadata representing the release version and commit range.",
-        "impact": "The changelog entries are more informative with explicit versioning and date information, enhancing clarity for users on the scope and timing of changes included in each release.",
+        "id": "add-version-date-and-git-range-to",
+        "title": "Add version, date, and git range to changelog entries manually",
+        "description": "Changelog entries were modified to include additional fields such as version, date, starting commit reference ('from_ref'), and ending commit reference ('to_ref') directly in the manual input. This provides a clearer and more complete representation of the changes in each release.",
+        "impact": "Changelog outputs will now explicitly include version, date, and git references for each entry, improving tracking and presentation of release information to end-users.",
         "commits": [
           "804391e4e40b0182605b801b7a9d68120c893410"
         ],
         "tags": [
-          "feature"
+          "feature",
+          "changed"
         ]
       }
     ]
@@ -36,9 +39,10 @@
     "to_ref": "v0.1.1",
     "changes": [
       {
-        "title": "Implemented changelog generation with Gemini AI client",
-        "description": "Added functionality to generate changelog entries using the Gemini AI API. The new implementation sends the commit history and version information to the Gemini model and parses the JSON response into structured changelog entries.",
-        "impact": "Users can now utilize the Gemini AI provider to generate accurate and structured changelog entries from commit histories, improving changelog quality and automation.",
+        "id": "implemented-changelog-generation-using",
+        "title": "Implemented changelog generation using Gemini AI client",
+        "description": "Added functionality to generate changelog entries using the Gemini API, which includes specifying a JSON response schema matching the changelog entries and handling JSON unmarshalling of the AI response.",
+        "impact": "Users can now generate changelog entries powered by Gemini AI with structured and validated JSON output, improving reliability and integration with Gemini AI.",
         "commits": [
           "febff5a7a85817672c4e576d62772ceb4871586b"
         ],
@@ -47,9 +51,10 @@
         ]
       },
       {
-        "title": "Added verbose output for AI provider and model",
-        "description": "Enhanced verbose logging to include the AI LLM provider and model information during changelog generation.",
-        "impact": "Enables users to see detailed context about which AI model and provider is being used, aiding in debugging and transparency.",
+        "id": "added-verbose-output-for-ai-provider-and",
+        "title": "Added verbose output for AI provider and model information",
+        "description": "Enhanced verbose logging when generating changelog entries to include the AI provider and model used in the generation process.",
+        "impact": "Enables users to see which AI provider and model are being utilized during changelog generation, improving transparency and debugging capability.",
         "commits": [
           "5debe9f8e69fc48a59af54f31d8f4de4c0d97893"
         ],
@@ -58,9 +63,10 @@
         ]
       },
       {
-        "title": "Added flag and validation for existing changelog file input",
-        "description": "Introduced a new command line flag to specify an existing changelog JSON file. The file is parsed and validated to ensure it contains a valid array of changelog entries or is empty.",
-        "impact": "Allows users to append new changelog entries to existing changelogs, maintaining continuity and preventing accidental overwriting.",
+        "id": "introduced-flag-to-specify-existing",
+        "title": "Introduced flag to specify existing changelog file with validation",
+        "description": "Added support for a command-line flag to specify a JSON file containing existing changelog entries, with validation to ensure the file exists and is properly formatted JSON.",
+        "impact": "Users can now update an existing changelog JSON file with new entries, integrating generated changelogs with previous changelogs seamlessly.",
         "commits": [
           "4e87e99f01e86d7eecd7b7fa6d65044a89334e23"
         ],
@@ -69,9 +75,10 @@
         ]
       },
       {
-        "title": "Implemented writing to existing changelog file when specified",
-        "description": "Updated the generate command to add the newly generated changelog entry to the beginning of an existing changelog file if provided, and save the updated file back to disk.",
-        "impact": "Users can seamlessly update their existing changelog files with new entries generated by the tool, enhancing usability and preserving changelog history.",
+        "id": "enabled-writing-new-changelog-entry-to",
+        "title": "Enabled writing new changelog entry to existing changelog file",
+        "description": "Extended generate command to append newly generated changelog entries at the start of an existing changelog JSON file if provided, including verbose logging and error handling.",
+        "impact": "Supports maintaining and updating existing changelog files automatically without manual merges, streamlining release documentation workflows.",
         "commits": [
           "b1ab77eb1c78df2455dc03c286a7d1c85268c98d"
         ],
@@ -80,14 +87,16 @@
         ]
       },
       {
-        "title": "Privatized and renamed generate command flags; added stderr printing helper",
-        "description": "Refined the generate command by privatizing and renaming its flags for better encapsulation and clarity. Added utility helper functions for consistent stderr output printing.",
-        "impact": "Improves code maintainability and provides a consistent user experience with standardized verbose logging to stderr.",
+        "id": "privatized-and-renamed-generate-command",
+        "title": "Privatized and renamed generate command flags; added helper functions for stderr printing",
+        "description": "Refactored generate command flags to use unexported struct for encapsulation and renamed for clarity. Added utility functions to assist with consistent stderr printing in the CLI tool.",
+        "impact": "Improves internal code quality and consistency of verbose error and status logging output for better user experience and maintainability.",
         "commits": [
           "fb7665d614270fbb4c39be573f0effe52de404f1"
         ],
         "tags": [
-          "improvement"
+          "improvement",
+          "chore"
         ]
       }
     ]
@@ -99,9 +108,10 @@
     "to_ref": "v0.1.0",
     "changes": [
       {
-        "title": "Add 'generate' command",
-        "description": "Introduced a new command called 'generate' to the CLI application to facilitate changelog generation.",
-        "impact": "Users can now invoke the 'generate' command as part of the CLI to initiate changelog creation.",
+        "id": "add-generate-command-for-changelog",
+        "title": "Add generate command for changelog generation",
+        "description": "Introduced the 'generate' command which serves as the CLI entry point to generate AI-powered changelogs from git history.",
+        "impact": "Users can invoke 'generate' command in the CLI to create changelogs, enabling automated changelog generation workflows.",
         "commits": [
           "2caa8df4afe444ab7926f2a31e4369feab555776"
         ],
@@ -110,9 +120,10 @@
         ]
       },
       {
-        "title": "Add 'from' and 'to' flags with validation to 'generate' command",
-        "description": "Enhanced the 'generate' command by adding 'from' and 'to' flags to specify the starting and ending commit references, respectively. Included validation to ensure these references are valid Git commits, tags, or branches.",
-        "impact": "Users can now specify the commit range for changelog generation, and invalid references will be caught early with error messages.",
+        "id": "add-from-and-to-flags-with-validation-to",
+        "title": "Add from and to flags with validation to generate command",
+        "description": "Enhanced the 'generate' command to accept '--from' and '--to' flags representing git commit references, adding validation to ensure these references exist in git history.",
+        "impact": "Allows users to specify custom commit ranges for changelog generation, improving flexibility and correctness by validating inputs early.",
         "commits": [
           "c77998ea601b3c1c72d2b746b7ed0c8358ef723e"
         ],
@@ -122,9 +133,10 @@
         ]
       },
       {
-        "title": "Retrieve git logs and commits with diff; cleanup flag parsing",
-        "description": "Implemented functions to retrieve git logs, commits range, and commit details, including diffs. Refactored flag parsing and validation to improve code clarity and robustness.",
-        "impact": "Improved internal handling of git history retrieval for better changelog generation; flag parsing is more robust and maintainable.",
+        "id": "fetch-git-logs-commits-and-commit-details",
+        "title": "Fetch git logs, commits and commit details with improved flag parsing",
+        "description": "Implemented functions to fetch git logs and commit details within a specified range, and introduced verbose flag support for detailed output. Also refactored flag parsing and validation for clarity.",
+        "impact": "This enables the generate command to process and retrieve detailed git commit information which is essential for accurate changelog generation. Verbose mode aids debugging and user feedback during changelog creation.",
         "commits": [
           "faa6e7fa04a2932bf89823c10f25ca0c7c42b291"
         ],
@@ -134,9 +146,10 @@
         ]
       },
       {
-        "title": "Move validation to parse and validate function",
-        "description": "Moved Git reference validation logic into a central flag parsing and validation function to streamline the flag handling process.",
-        "impact": "Improves code organization and reusability during flag parsing, ensuring references are validated consistently.",
+        "id": "refactor-flag-parsing-and-validation-to",
+        "title": "Refactor flag parsing and validation to consolidate logic",
+        "description": "Moved git ref validation into a unified flag parsing and validation function, simplifying the generate command's RunE function and improving error handling fidelity.",
+        "impact": "Improves maintainability and reliability of flag validation, ensuring invalid git references are caught promptly in a single place.",
         "commits": [
           "12c13083227bde82f4e453879cd180d36610f390"
         ],
@@ -145,9 +158,10 @@
         ]
       },
       {
-        "title": "Refactor git-related functions into separate 'git' package",
-        "description": "Extracted Git utility functions like checking installation, validating references, and fetching commit logs and details into a dedicated Git package for better modularity.",
-        "impact": "Codebase is more modular, making maintenance and future enhancements to Git interactions easier and more isolated.",
+        "id": "move-git-related-functions-to-a-separate",
+        "title": "Move git-related functions to a separate package",
+        "description": "Refactored the code to relocate all git command functions into a dedicated 'git' package, enhancing modularity and separation of concerns.",
+        "impact": "Improves code organization and reuse, allowing the git logic to be independently maintained and imported where needed.",
         "commits": [
           "dbe2f28b1a9fecd820e39af33aa133e0b3ed7d30"
         ],
@@ -156,9 +170,10 @@
         ]
       },
       {
-        "title": "Add README with basic project description",
-        "description": "Added a README file containing project title and a brief description explaining it is a CLI tool for generating changelogs with AI.",
-        "impact": "Provides users and contributors with immediate context about the project and its purpose when accessing the repository.",
+        "id": "add-readme-with-project-description",
+        "title": "Add README with project description",
+        "description": "Created a README.md file with basic centered title and description for the chlog CLI tool, explaining its purpose as an AI-powered changelog generator.",
+        "impact": "Provides initial documentation and project visibility to users and contributors through a standardized project introduction.",
         "commits": [
           "8f84547c6f226f1cf71e7e898a1fb3e53279bac4"
         ],
@@ -167,9 +182,10 @@
         ]
       },
       {
-        "title": "Add AI client interface and structs for OpenAI and Gemini providers",
-        "description": "Created an AIClient interface and structured support for OpenAI and Gemini AI clients, including configuration for providers and their models.",
-        "impact": "Facilitates integration with multiple LLM providers for AI-powered changelog generation, allowing users to select preferred AI backend and model.",
+        "id": "implement-ai-client-interface-and",
+        "title": "Implement AI client interface and provider/model configurations",
+        "description": "Added interfaces and structs for AI providers (OpenAI and Gemini) along with configuration and CLI help for supported AI providers and models.",
+        "impact": "Users can select which AI LLM provider and model to use for changelog generation, improving extensibility and customization of the AI backend.",
         "commits": [
           "d19f6e6fabf320b413b755500d774f3221d21a3e"
         ],
@@ -178,11 +194,25 @@
         ]
       },
       {
-        "title": "Add new AI client creation function",
-        "description": "Implemented a new function to instantiate AI clients based on provider name and API key, handling supported providers OpenAI and Gemini with proper error handling for unsupported providers.",
-        "impact": "Simplifies AI client initialization, enabling easier extension and selection of AI providers within changelog generation workflow.",
+        "id": "add-new-ai-client-factory-function-for-ai",
+        "title": "Add NewAIClient factory function for AI clients",
+        "description": "Added a factory function that returns the respective AIClient implementations (OpenAIClient or GeminiAIClient) based on the provider and API key provided.",
+        "impact": "Simplifies client creation and enforces API key requirement, enhancing the modularity and interface adherence of AI provider implementations.",
         "commits": [
           "069a78eef64c36e2a3219a24856e1bae58c4a9d8"
+        ],
+        "tags": [
+          "feature"
+        ]
+      },
+      {
+        "id": "enhance-generate-command-to-accept",
+        "title": "Enhance generate command to accept provider, model, API key flags and invoke AI client",
+        "description": "Extended the generate command to accept provider, model, and API key flags, construct an AI client accordingly, fetch commit history and diffs, then invoke AI-powered changelog generation with verbose and pretty print options.",
+        "impact": "Users can now generate changelogs powered by AI models of their choice, with fine control over input and output formatting, greatly enhancing functionality of the CLI tool.",
+        "commits": [
+          "d19f6e6fabf320b413b755500d774f3221d21a3e",
+          "9404cbb4e5a147b1614452358894be170d089056"
         ],
         "tags": [
           "feature",
@@ -190,9 +220,23 @@
         ]
       },
       {
-        "title": "Add version argument and date flag to 'generate' command; fix verbose output to stderr",
-        "description": "Extended the 'generate' command to accept a version argument (defaulting to current date) and a date flag for changelog entry date. Changed verbose output to write to stderr for better CLI UX.",
-        "impact": "Users can specify version and changelog date explicitly when generating logs; verbose messages no longer interfere with standard output.",
+        "id": "add-models-command-to-list-supported",
+        "title": "Add models command to list supported providers and models",
+        "description": "Introduced a new CLI command 'models' to list available AI providers and their supported models including environment variable hints for API keys.",
+        "impact": "Improves usability by helping users discover configurable AI backends and model options, aiding in proper configuration and setup.",
+        "commits": [
+          "2f6299eb0aeca18bfd8f0c1ff69cfcc047d388e8"
+        ],
+        "tags": [
+          "feature",
+          "documentation"
+        ]
+      },
+      {
+        "id": "add-version-argument-and-date-flag-to",
+        "title": "Add version argument and date flag to generate command with output improvements",
+        "description": "Updated the generate command to accept a positional version argument (defaulting to current date) and a date flag for changelog entries. Verbose output now pipes to stderr to separate it from changelog JSON output.",
+        "impact": "Enables users to tag generated changelog entries with meaningful version numbers and dates, and improves command line output separation for scripting and logging purposes.",
         "commits": [
           "7ac8ef033e0640dceae8c76902eb07a35f3cfa42"
         ],
@@ -202,14 +246,16 @@
         ]
       },
       {
-        "title": "Generate JSON changelog with OpenAI integration",
-        "description": "Implemented JSON output changelog generation using OpenAI API. Included structured prompts, JSON schema validation, and support for pretty-printing. Enhanced AIClient interface and OpenAI client to generate structured changelog entries based on Git history with diffs.",
-        "impact": "Enables users to generate well-structured, AI-powered JSON changelog outputs verified against schema for easy downstream consumption. Improves changelog quality and usability significantly.",
+        "id": "generate-json-changelog-output-using-open",
+        "title": "Generate JSON changelog output using OpenAI client integration",
+        "description": "Finalized the AI generation integration by formatting commit history and diffs, invoking the OpenAI API with structured prompts and JSON schema enforcement, then outputting the structured changelog entry as JSON.",
+        "impact": "Provides end-to-end AI-powered structured changelog generation output, producing machine-readable JSON changelogs suitable for automation and tooling integration.",
         "commits": [
           "24fced799c5c2a6b22f90b28606c33c9b5e92bfa"
         ],
         "tags": [
-          "feature"
+          "feature",
+          "improvement"
         ]
       }
     ]

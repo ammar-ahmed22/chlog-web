@@ -7,7 +7,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import ChangelogViewer from "@/components/changelog-viewer";
+import ChangelogView from "@/views/changelog-view";
 
 export default function Home() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function Home() {
   };
 
   if (srcParam) {
-    return <ChangelogViewer changelogSrc={srcParam} />;
+    return <ChangelogView changelogSrc={srcParam} />;
   } else {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">

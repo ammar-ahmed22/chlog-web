@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -22,41 +21,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { compareAsc, format, parseISO, compareDesc } from "date-fns";
-import {
-  ChevronDown,
-  ChevronRight,
-  Loader,
-  Search,
-  Tag,
-} from "lucide-react";
+import { compareAsc, parseISO, compareDesc } from "date-fns";
+import { Loader, Search, Tag } from "lucide-react";
 import TagFilter from "@/components/ui/tag-filter";
 import DateRangeFilter from "@/components/ui/date-range-filter";
 import { DateRange } from "react-day-picker";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import EntryView from "./entry-view";
+import { formatDate, matchChange } from "@/lib/utils";
+import ChangesTable from "@/components/changes-table";
+import { ChangelogEntry } from "@/lib/types";
+import ChangeView from "./change-view";
 
-type ChangelogChange = {
-  title: string;
-  description: string;
-  impact: string;
-  commits: string[];
-  tags: string[];
-};
-
-type ChangelogEntry = {
-  version: string;
-  date: string;
-  from_ref: string;
-  to_ref: string;
-  changes: ChangelogChange[];
-};
-
-export interface ChangelogViewerProps {
+export interface ChangelogViewProps {
   changelogSrc: string;
 }
 
-export default function ChangelogViewer({
+export default function ChangelogView({
   changelogSrc,
-}: ChangelogViewerProps) {
+}: ChangelogViewProps) {
+  const searchParams = useSearchParams();
+  const versionParam = searchParams.get("version");
+  const idParam = searchParams.get("id");
   const [changelog, setChangelog] = useState<ChangelogEntry[]>([]);
   const [fetchingError, setFetchingError] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -137,31 +124,28 @@ export default function ChangelogViewer({
     );
   }, [searchQuery, selectedTags, selectedVersion, dateRange]);
 
-  const matchChange = useCallback(
-    (change: ChangelogChange) => {
-      // Filter by search query
-      const matchesSearch =
-        !searchQuery ||
-        change.title
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        change.description
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        change.impact
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        change.commits.some((commit) => commit.includes(searchQuery));
-
-      // Filter by tags
-      const matchesTags =
-        selectedTags.length === 0 ||
-        selectedTags.every((tag) => change.tags.includes(tag));
-
-      return matchesSearch && matchesTags;
-    },
-    [searchQuery, selectedTags],
-  );
+  // const matchChange = useCallback(
+  //   (change: ChangelogChange) => {
+  //     // Filter by search query
+  //     const matchesSearch =
+  //       !searchQuery ||
+  //       change.title
+  //         .toLowerCase()
+  //         .includes(searchQuery.toLowerCase()) ||
+  //       change.commits.some((commit) =>
+  //         commit.includes(searchQuery),
+  //       ) ||
+  //       change.tags.some((tag) => tag.includes(searchQuery));
+  //
+  //     // Filter by tags
+  //     const matchesTags =
+  //       selectedTags.length === 0 ||
+  //       selectedTags.every((tag) => change.tags.includes(tag));
+  //
+  //     return matchesSearch && matchesTags;
+  //   },
+  //   [searchQuery, selectedTags],
+  // );
 
   // Filter the changelog based on all filters
   const filteredChangelog = useMemo(() => {
@@ -184,11 +168,20 @@ export default function ChangelogViewer({
       }
 
       // Filter by search query and tags at the change level
-      const matchingChanges = entry.changes.filter(matchChange);
+      const matchingChanges = entry.changes.filter((change) =>
+        matchChange(change, searchQuery, selectedTags),
+      );
 
       return matchingChanges.length > 0;
     });
-  }, [changelog, selectedVersion, dateRange, matchChange]);
+  }, [
+    changelog,
+    selectedVersion,
+    dateRange?.from,
+    dateRange?.to,
+    searchQuery,
+    selectedTags,
+  ]);
 
   const dateRangeBounds: DateRange | undefined = useMemo(() => {
     if (changelog.length !== 0) {
@@ -227,10 +220,20 @@ export default function ChangelogViewer({
     }
   }, [hasFilters, filteredChangelog, setExpandedEntries]);
   // Format date for display
-  const formatDate = (dateString: string) => {
-    return format(parseISO(dateString), "MMMM d, yyyy");
-  };
 
+  if (versionParam && !idParam && !loading && !fetchingError) {
+    return <EntryView version={versionParam} changelog={changelog} />;
+  }
+
+  if (versionParam && idParam && !loading && !fetchingError) {
+    return (
+      <ChangeView
+        version={versionParam}
+        id={idParam}
+        changelog={changelog}
+      />
+    );
+  }
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl">
       <h1 className="text-3xl font-bold mb-8">Changelog</h1>
@@ -331,7 +334,9 @@ export default function ChangelogViewer({
         <div className="space-y-6">
           {filteredChangelog.map((entry) => {
             // Filter changes based on search query and selected tags
-            const filteredChanges = entry.changes.filter(matchChange);
+            const filteredChanges = entry.changes.filter((change) =>
+              matchChange(change, searchQuery, selectedTags),
+            );
 
             if (filteredChanges.length === 0) return null;
 
@@ -339,32 +344,19 @@ export default function ChangelogViewer({
               <Card
                 key={entry.version}
                 className="overflow-hidden py-0 gap-0">
-                <CardHeader className="bg-gray-50 dark:bg-gray-900 py-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl flex items-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="p-0 mr-2 h-6 w-6 cursor-pointer"
-                        onClick={() => toggleExpanded(entry.version)}>
-                        {expandedEntries[entry.version] ? (
-                          <ChevronDown size={18} />
-                        ) : (
-                          <ChevronRight size={18} />
-                        )}
-                        <span className="sr-only">
-                          {expandedEntries[entry.version]
-                            ? "Collapse"
-                            : "Expand"}
-                        </span>
-                      </Button>
-                      Version {entry.version}
-                    </CardTitle>
-                    <div className="text-sm text-gray-500">
-                      {formatDate(entry.date)}
+                <Link
+                  href={`?src=${encodeURIComponent(changelogSrc)}&version=${encodeURIComponent(entry.version)}`}>
+                  <CardHeader className="bg-gray-50 dark:bg-gray-900 py-4">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-xl flex items-center">
+                        Version {entry.version}
+                      </CardTitle>
+                      <div className="text-sm text-gray-500">
+                        {formatDate(entry.date)}
+                      </div>
                     </div>
-                  </div>
-                </CardHeader>
+                  </CardHeader>
+                </Link>
 
                 <CardContent className="p-0">
                   <Collapsible
@@ -384,45 +376,11 @@ export default function ChangelogViewer({
                       </div>
                     </CollapsibleTrigger>
 
-                    <CollapsibleContent>
-                      <ul className="divide-y divide-gray-100 dark:divide-gray-800">
-                        {filteredChanges.map((change, index) => (
-                          <li
-                            key={change.commits[0] + index}
-                            className="p-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                            <div className="flex flex-col gap-2">
-                              <div className="flex items-center gap-2">
-                                {change.commits.map(
-                                  (commit, cIdx) => {
-                                    return (
-                                      <code
-                                        key={
-                                          "commit-" + commit + cIdx
-                                        }
-                                        className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono">
-                                        {commit.substring(0, 7)}
-                                      </code>
-                                    );
-                                  },
-                                )}
-                                <div className="flex flex-wrap gap-1">
-                                  {change.tags.map((tag) => (
-                                    <Badge
-                                      key={tag}
-                                      variant="outline"
-                                      className="text-xs">
-                                      {tag}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
-                              <p className="text-sm">
-                                {change.title}
-                              </p>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
+                    <CollapsibleContent className="px-4 py-2">
+                      <ChangesTable
+                        version={entry.version}
+                        changes={filteredChanges}
+                      />
                     </CollapsibleContent>
                   </Collapsible>
                 </CardContent>
