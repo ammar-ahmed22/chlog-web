@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { FileJson, ExternalLink } from "lucide-react";
+import { FileJson, ExternalLink, Info } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import ChangelogView from "@/views/changelog-view";
+import CodeBadge from "@/components/ui/code-badge";
 
 export default function Home() {
   const router = useRouter();
@@ -16,10 +17,6 @@ export default function Home() {
   const [inputUrl, setInputUrl] = useState("");
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputUrl) {
-      // TODO: Validation
-      return;
-    }
     router.push(`?src=${encodeURIComponent(inputUrl)}`);
   };
 
@@ -65,6 +62,22 @@ export default function Home() {
                     className="w-full"
                     required
                   />
+                  <div className="flex gap-1 items-center">
+                    <Info className="size-3 text-foreground" />
+                    <p className="text-xs text-muted-foreground text-left">
+                      Try{" "}
+                      <Button
+                        variant="link"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setInputUrl("/changelog.json");
+                        }}
+                        className="p-0 text-xs cursor-pointer">
+                        /changelog.json
+                      </Button>{" "}
+                      to see an example.
+                    </p>
+                  </div>
                 </div>
 
                 <Button type="submit" className="w-full">
@@ -75,24 +88,23 @@ export default function Home() {
           </Card>
 
           <div className="space-y-4 pt-8">
-            <h2 className="text-xl font-semibold">How it works</h2>
+            <h2 className="text-xl font-semibold md:text-left text-left">
+              How it works
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
               <div className="space-y-2">
-                <div className="h-8 w-8 rounded-full">1</div>
                 <h3 className="font-medium">Enter URL</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Provide a link to your changelog.json file
                 </p>
               </div>
               <div className="space-y-2">
-                <div className="h-8 w-8 rounded-full">2</div>
                 <h3 className="font-medium">View</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   See your changelog in a clean, organized format
                 </p>
               </div>
               <div className="space-y-2">
-                <div className="h-8 w-8 rounded-full">3</div>
                 <h3 className="font-medium">Filter & Search</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Find specific changes with powerful filtering tools
@@ -104,10 +116,7 @@ export default function Home() {
           <div className="text-sm text-gray-500 dark:text-gray-400">
             <p>
               Your changelog.json file should follow the{" "}
-              <code className="bg-gray-200 text-xs px-2 py-1 rounded text-gray-700">
-                chlog
-              </code>{" "}
-              format.
+              <CodeBadge>chlog</CodeBadge> format.
               <Link
                 href="https://github.com/ammar-ahmed22/chlog"
                 className={buttonVariants({

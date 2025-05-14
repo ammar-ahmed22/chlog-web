@@ -1,4 +1,4 @@
-import { ChangelogChange, ChangelogEntry } from "@/lib/types";
+import { ChangelogEntry } from "@/lib/types";
 import {
   Breadcrumb,
   BreadcrumbItem,

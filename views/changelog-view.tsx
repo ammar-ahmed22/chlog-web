@@ -124,29 +124,6 @@ export default function ChangelogView({
     );
   }, [searchQuery, selectedTags, selectedVersion, dateRange]);
 
-  // const matchChange = useCallback(
-  //   (change: ChangelogChange) => {
-  //     // Filter by search query
-  //     const matchesSearch =
-  //       !searchQuery ||
-  //       change.title
-  //         .toLowerCase()
-  //         .includes(searchQuery.toLowerCase()) ||
-  //       change.commits.some((commit) =>
-  //         commit.includes(searchQuery),
-  //       ) ||
-  //       change.tags.some((tag) => tag.includes(searchQuery));
-  //
-  //     // Filter by tags
-  //     const matchesTags =
-  //       selectedTags.length === 0 ||
-  //       selectedTags.every((tag) => change.tags.includes(tag));
-  //
-  //     return matchesSearch && matchesTags;
-  //   },
-  //   [searchQuery, selectedTags],
-  // );
-
   // Filter the changelog based on all filters
   const filteredChangelog = useMemo(() => {
     return changelog.filter((entry) => {
