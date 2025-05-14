@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { useMemo, useState } from "react";
 import TagFilter from "@/components/ui/tag-filter";
 import { matchChange } from "@/lib/utils";
+import ShareButton from "@/components/share-button";
 
 export interface EntryViewProps {
   version: string;
@@ -70,18 +71,22 @@ export default function EntryView({
   }
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl">
-      <Breadcrumb className="mb-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink
-              href={`?src=${encodeURIComponent(srcParam!)}`}>
-              Changelog
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>Version {entry.version}</BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <div className="flex items-center justify-between mb-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink
+                href={`?src=${encodeURIComponent(srcParam!)}`}>
+                Changelog
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>Version {entry.version}</BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        <ShareButton />
+      </div>
       <div className="flex items-center justify-between mb-2">
         <h1 className="text-3xl font-bold">
           Version {entry.version}

@@ -8,9 +8,10 @@ import {
 } from "@/components/ui/breadcrumb";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
-import { formatDate } from "@/lib/utils";
+import { formatDate, truncateString } from "@/lib/utils";
 import CodeBadge from "@/components/ui/code-badge";
 import { Badge } from "@/components/ui/badge";
+import ShareButton from "@/components/share-button";
 
 export interface ChangeViewProps {
   version: string;
@@ -49,25 +50,31 @@ export default function ChangeView({
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl">
-      <Breadcrumb className="mb-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink
-              href={`?src=${encodeURIComponent(srcParam)}`}>
-              Changelog
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink
-              href={`?src=${encodeURIComponent(srcParam)}&version=${encodeURIComponent(version)}`}>
-              Version {version}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>{change.title}</BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <div className="flex items-center justify-between mb-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink
+                href={`?src=${encodeURIComponent(srcParam)}`}>
+                Changelog
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink
+                href={`?src=${encodeURIComponent(srcParam)}&version=${encodeURIComponent(version)}`}>
+                Version {version}
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              {truncateString(change.title, 50)}
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        <ShareButton />
+      </div>
 
       <h1 className="text-3xl font-bold mb-2">{change.title}</h1>
       <div className="flex gap-2 flex-wrap mb-2">
