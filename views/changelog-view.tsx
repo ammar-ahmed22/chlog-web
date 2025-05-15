@@ -22,18 +22,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { compareAsc, parseISO, compareDesc } from "date-fns";
-import { Loader, Search, Tag } from "lucide-react";
+import { Search, Tag } from "lucide-react";
 import TagFilter from "@/components/ui/tag-filter";
 import DateRangeFilter from "@/components/ui/date-range-filter";
 import { DateRange } from "react-day-picker";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import EntryView from "./entry-view";
-import { formatDate, matchChange } from "@/lib/utils";
+import {
+  formatDate,
+  isChangelogEntryArray,
+  matchChange,
+} from "@/lib/utils";
 import ChangesTable from "@/components/changes-table";
 import { ChangelogEntry } from "@/lib/types";
 import ChangeView from "./change-view";
 import ShareButton from "@/components/share-button";
+import FullScreenLoading from "@/components/ui/full-screen-loading";
+import FullScreenError from "@/components/ui/full-screen-error";
 
 export interface ChangelogViewProps {
   changelogSrc: string;
@@ -46,19 +52,29 @@ export default function ChangelogView({
   const versionParam = searchParams.get("version");
   const idParam = searchParams.get("id");
   const [changelog, setChangelog] = useState<ChangelogEntry[]>([]);
-  const [fetchingError, setFetchingError] = useState(false);
+  const [fetchingError, setFetchingError] = useState<string | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     setLoading(true);
     fetch(changelogSrc)
       .then((response) => response.json())
       .then((data) => {
+        if (!isChangelogEntryArray(data)) {
+          console.error("Invalid changelog format");
+          setFetchingError("Changelog is not in the correct format.");
+          setLoading(false);
+          return;
+        }
         setChangelog(data);
         setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching changelog:", error);
-        setFetchingError(true);
+        setFetchingError(
+          "There was an error fetching the changelog.",
+        );
         setLoading(false);
       });
   }, [changelogSrc]);
@@ -197,179 +213,169 @@ export default function ChangelogView({
       setExpandedEntries({});
     }
   }, [hasFilters, filteredChangelog, setExpandedEntries]);
-  // Format date for display
 
-  if (versionParam && !idParam && !loading && !fetchingError) {
-    return <EntryView version={versionParam} changelog={changelog} />;
-  }
+  if (loading) {
+    return <FullScreenLoading />;
+  } else if (fetchingError) {
+    return <FullScreenError message={fetchingError} />;
+  } else {
+    if (versionParam && !idParam) {
+      return (
+        <EntryView version={versionParam} changelog={changelog} />
+      );
+    } else if (versionParam && idParam) {
+      return (
+        <ChangeView
+          version={versionParam}
+          id={idParam}
+          changelog={changelog}
+        />
+      );
+    } else {
+      return (
+        <div className="container mx-auto py-8 px-4 max-w-5xl">
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-3xl font-bold">Changelog</h1>
+            <ShareButton />
+          </div>
 
-  if (versionParam && idParam && !loading && !fetchingError) {
-    return (
-      <ChangeView
-        version={versionParam}
-        id={idParam}
-        changelog={changelog}
-      />
-    );
-  }
-  return (
-    <div className="container mx-auto py-8 px-4 max-w-5xl">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">Changelog</h1>
-        <ShareButton />
-      </div>
+          {/* Filters */}
+          <div className="mb-8 space-y-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-grow">
+                <Search
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
+                <Input
+                  placeholder="Search changes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
 
-      {/* Filters */}
-      <div className="mb-8 space-y-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-grow">
-            <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={18}
-            />
-            <Input
-              placeholder="Search changes..."
-              value={searchQuery}
-              disabled={loading || fetchingError}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              <Select
+                value={selectedVersion}
+                onValueChange={setSelectedVersion}>
+                <SelectTrigger className="w-full md:w-[180px] cursor-pointer">
+                  <Tag className="size-4" />
+                  <SelectValue placeholder="Filter by version" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All versions</SelectItem>
+                  {allVersions.map((version) => (
+                    <SelectItem key={version} value={version}>
+                      {version}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <DateRangeFilter
+                dateRange={dateRange}
+                onDateRangeChange={setDateRange}
+                disabled={(date) => {
+                  if (dateRangeBounds) {
+                    if (
+                      dateRangeBounds.from &&
+                      date < dateRangeBounds.from
+                    ) {
+                      return true;
+                    }
+                    if (
+                      dateRangeBounds.to &&
+                      date > dateRangeBounds.to
+                    ) {
+                      return true;
+                    }
+                  }
+                  return false;
+                }}
+              />
+            </div>
+
+            <TagFilter
+              tags={allTags}
+              selectedTags={selectedTags}
+              onTagSelect={addTagFilter}
+              onTagDeselect={removeTagFilter}
             />
           </div>
 
-          <Select
-            disabled={loading || fetchingError}
-            value={selectedVersion}
-            onValueChange={setSelectedVersion}>
-            <SelectTrigger className="w-full md:w-[180px] cursor-pointer">
-              <Tag className="size-4" />
-              <SelectValue placeholder="Filter by version" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All versions</SelectItem>
-              {allVersions.map((version) => (
-                <SelectItem key={version} value={version}>
-                  {version}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <DateRangeFilter
-            dateRange={dateRange}
-            onDateRangeChange={setDateRange}
-            disabled={(date) => {
-              if (loading || fetchingError) {
-                return true;
-              }
-              if (dateRangeBounds) {
-                if (
-                  dateRangeBounds.from &&
-                  date < dateRangeBounds.from
-                ) {
-                  return true;
-                }
-                if (dateRangeBounds.to && date > dateRangeBounds.to) {
-                  return true;
-                }
-              }
-              return false;
-            }}
-          />
-        </div>
+          {/* Changelog entries */}
+          {filteredChangelog.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">
+                No changelog entries match your filters.
+              </p>
+              <Button variant="link" onClick={clearFilters}>
+                Clear all filters
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {filteredChangelog.map((entry) => {
+                // Filter changes based on search query and selected tags
+                const filteredChanges = entry.changes.filter(
+                  (change) =>
+                    matchChange(change, searchQuery, selectedTags),
+                );
 
-        <TagFilter
-          tags={allTags}
-          selectedTags={selectedTags}
-          onTagSelect={addTagFilter}
-          onTagDeselect={removeTagFilter}
-        />
-      </div>
+                if (filteredChanges.length === 0) return null;
 
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader className="animate-spin size-8" />
-        </div>
-      )}
-
-      {/* Fetching error */}
-      {!loading && fetchingError && (
-        <div className="text-center py-12">
-          <p className="text-xl font-bold">Oops!</p>
-          <p className="text-gray-500">
-            There was an error fetching the changelog.
-          </p>
-        </div>
-      )}
-      {/* Changelog entries */}
-      {!loading &&
-      !fetchingError &&
-      filteredChangelog.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">
-            No changelog entries match your filters.
-          </p>
-          <Button variant="link" onClick={clearFilters}>
-            Clear all filters
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {filteredChangelog.map((entry) => {
-            // Filter changes based on search query and selected tags
-            const filteredChanges = entry.changes.filter((change) =>
-              matchChange(change, searchQuery, selectedTags),
-            );
-
-            if (filteredChanges.length === 0) return null;
-
-            return (
-              <Card
-                key={entry.version}
-                className="overflow-hidden py-0 gap-0">
-                <Link
-                  href={`?src=${encodeURIComponent(changelogSrc)}&version=${encodeURIComponent(entry.version)}`}>
-                  <CardHeader className="bg-gray-50 dark:bg-gray-900 py-4">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-xl flex items-center">
-                        Version {entry.version}
-                      </CardTitle>
-                      <div className="text-sm text-gray-500">
-                        {formatDate(entry.date)}
-                      </div>
-                    </div>
-                  </CardHeader>
-                </Link>
-
-                <CardContent className="p-0">
-                  <Collapsible
-                    open={expandedEntries[entry.version]}
-                    onOpenChange={() =>
-                      toggleExpanded(entry.version)
-                    }>
-                    <CollapsibleTrigger className="w-full text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors p-4 border-t border-gray-100 dark:border-gray-800">
-                      <div className="flex justify-between items-center">
-                        <div className="text-sm text-gray-500">
-                          {filteredChanges.length} change
-                          {filteredChanges.length !== 1 ? "s" : ""}
+                return (
+                  <Card
+                    key={entry.version}
+                    className="overflow-hidden py-0 gap-0">
+                    <Link
+                      href={`?src=${encodeURIComponent(changelogSrc)}&version=${encodeURIComponent(entry.version)}`}>
+                      <CardHeader className="bg-gray-50 dark:bg-gray-900 py-4">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-xl flex items-center">
+                            Version {entry.version}
+                          </CardTitle>
+                          <div className="text-sm text-gray-500">
+                            {formatDate(entry.date)}
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {entry.from_ref} → {entry.to_ref}
-                        </div>
-                      </div>
-                    </CollapsibleTrigger>
+                      </CardHeader>
+                    </Link>
 
-                    <CollapsibleContent className="px-4 py-2">
-                      <ChangesTable
-                        version={entry.version}
-                        changes={filteredChanges}
-                      />
-                    </CollapsibleContent>
-                  </Collapsible>
-                </CardContent>
-              </Card>
-            );
-          })}
+                    <CardContent className="p-0">
+                      <Collapsible
+                        open={expandedEntries[entry.version]}
+                        onOpenChange={() =>
+                          toggleExpanded(entry.version)
+                        }>
+                        <CollapsibleTrigger className="w-full text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors p-4 border-t border-gray-100 dark:border-gray-800">
+                          <div className="flex justify-between items-center">
+                            <div className="text-sm text-gray-500">
+                              {filteredChanges.length} change
+                              {filteredChanges.length !== 1
+                                ? "s"
+                                : ""}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {entry.from_ref} → {entry.to_ref}
+                            </div>
+                          </div>
+                        </CollapsibleTrigger>
+
+                        <CollapsibleContent className="px-4 py-2">
+                          <ChangesTable
+                            version={entry.version}
+                            changes={filteredChanges}
+                          />
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
-      )}
-    </div>
-  );
+      );
+    }
+  }
 }
