@@ -13,6 +13,12 @@
 3. Provide the URL to the JSON file on the website
 4. View your changelog in a user-friendly format with filtering and custom, shareable URLs
 
+> [!IMPORTANT]
+> The changelog JSON file must be in the [correct format](https://github.com/ammar-ahmed22/chlog#-json-format).
+
+> [!TIP]
+> If your changelog JSON file follows the format created with [`chlog init`](https://github.com/ammar-ahmed22/chlog#chlog-init), you can unlock extra features like showing the title and description of your changelog as well as linking commits to the GitHub diffs (provided the repository URL is a GitHub URL).
+
 ## Running Locally
 Clone the repo:
 ```bash
