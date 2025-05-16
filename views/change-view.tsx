@@ -1,4 +1,4 @@
-import { ChangelogEntry } from "@/lib/types";
+import { ChangelogFile } from "@/lib/types";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,10 +12,12 @@ import { formatDate, truncateString } from "@/lib/utils";
 import CodeBadge from "@/components/ui/code-badge";
 import { Badge } from "@/components/ui/badge";
 import ShareButton from "@/components/share-button";
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 
 export interface ChangeViewProps {
   version: string;
-  changelog: ChangelogEntry[];
+  changelog: ChangelogFile;
   id: string;
 }
 
@@ -27,7 +29,9 @@ export default function ChangeView({
   const searchParams = useSearchParams();
   const srcParam = searchParams.get("src")!;
   const entry = useMemo(() => {
-    return changelog.find((entry) => entry.version === version);
+    return changelog.entries.find(
+      (entry) => entry.version === version,
+    );
   }, [changelog, version]);
 
   const change = useMemo(() => {
@@ -98,6 +102,21 @@ export default function ChangeView({
       <h2 className="text-xl font-bold mb-2">Commits</h2>
       <div className="flex gap-2 flex-wrap mb-4">
         {change.commits.map((commit) => {
+          if (
+            changelog.repository &&
+            changelog.repository.includes("github.com")
+          ) {
+            return (
+              <Link
+                key={change.id + commit}
+                href={`${changelog.repository}/commit/${commit}`}>
+                <CodeBadge className="flex gap-2 items-center">
+                  <div>{commit.substring(0, 7)}</div>
+                  <ExternalLink className="size-3" />
+                </CodeBadge>
+              </Link>
+            );
+          }
           return (
             <CodeBadge key={change.id + commit}>
               {commit.substring(0, 7)}

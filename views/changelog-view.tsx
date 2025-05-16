@@ -35,7 +35,7 @@ import {
   matchChange,
 } from "@/lib/utils";
 import ChangesTable from "@/components/changes-table";
-import { ChangelogEntry } from "@/lib/types";
+import { ChangelogFile } from "@/lib/types";
 import ChangeView from "./change-view";
 import ShareButton from "@/components/share-button";
 import FullScreenLoading from "@/components/ui/full-screen-loading";
@@ -51,7 +51,12 @@ export default function ChangelogView({
   const searchParams = useSearchParams();
   const versionParam = searchParams.get("version");
   const idParam = searchParams.get("id");
-  const [changelog, setChangelog] = useState<ChangelogEntry[]>([]);
+  const [changelog, setChangelog] = useState<ChangelogFile>({
+    title: "Changelog",
+    description: "",
+    repository: "",
+    entries: [],
+  });
   const [fetchingError, setFetchingError] = useState<string | null>(
     null,
   );
@@ -61,14 +66,32 @@ export default function ChangelogView({
     fetch(changelogSrc)
       .then((response) => response.json())
       .then((data) => {
-        if (!isChangelogEntryArray(data)) {
+        if (isChangelogEntryArray(data)) {
+          setChangelog({
+            title: "Changelog",
+            description: "",
+            repository: "",
+            entries: data,
+          });
+          setLoading(false);
+        } else if (
+          data.entries &&
+          isChangelogEntryArray(data.entries)
+        ) {
+          const file = {
+            title: data.title || "Changelog",
+            description: data.description || "",
+            repository: data.repository || "",
+            entries: data.entries,
+          };
+          setChangelog(file);
+          setLoading(false);
+        } else {
           console.error("Invalid changelog format");
           setFetchingError("Changelog is not in the correct format.");
           setLoading(false);
           return;
         }
-        setChangelog(data);
-        setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching changelog:", error);
@@ -91,7 +114,7 @@ export default function ChangelogView({
   // Get all unique tags from the changelog
   const allTags = useMemo(() => {
     const tags = new Set<string>();
-    changelog.forEach((entry) => {
+    changelog.entries.forEach((entry) => {
       entry.changes.forEach((change) => {
         change.tags.forEach((tag) => tags.add(tag));
       });
@@ -101,7 +124,7 @@ export default function ChangelogView({
 
   // Get all unique versions from the changelog
   const allVersions = useMemo(() => {
-    return changelog.map((entry) => entry.version);
+    return changelog.entries.map((entry) => entry.version);
   }, [changelog]);
 
   // Toggle expanded state for an entry
@@ -143,7 +166,7 @@ export default function ChangelogView({
 
   // Filter the changelog based on all filters
   const filteredChangelog = useMemo(() => {
-    return changelog.filter((entry) => {
+    return changelog.entries.filter((entry) => {
       // Filter by version
       if (
         selectedVersion &&
@@ -178,8 +201,8 @@ export default function ChangelogView({
   ]);
 
   const dateRangeBounds: DateRange | undefined = useMemo(() => {
-    if (changelog.length !== 0) {
-      const parsedDates = changelog.map((entry) =>
+    if (changelog.entries.length !== 0) {
+      const parsedDates = changelog.entries.map((entry) =>
         parseISO(entry.date),
       );
       const oldest = parsedDates.reduce((min, curr) =>
@@ -235,7 +258,16 @@ export default function ChangelogView({
       return (
         <div className="container mx-auto py-8 px-4 max-w-5xl">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold">Changelog</h1>
+            <div>
+              <h1 className="text-3xl font-bold">
+                {changelog.title}
+              </h1>
+              {changelog.description && (
+                <p className="text-xl text-muted-foreground">
+                  {changelog.description}
+                </p>
+              )}
+            </div>
             <ShareButton />
           </div>
 

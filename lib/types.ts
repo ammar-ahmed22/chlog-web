@@ -14,3 +14,10 @@ export type ChangelogEntry = {
   to_ref: string;
   changes: ChangelogChange[];
 };
+
+export type ChangelogFile = {
+  title: string;
+  description: string;
+  repository: string;
+  entries: ChangelogEntry[];
+};
