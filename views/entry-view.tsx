@@ -1,6 +1,6 @@
 "use client";
 import { useSearchParams } from "next/navigation";
-import type { ChangelogEntry } from "@/lib/types";
+import type { ChangelogFile } from "@/lib/types";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -19,7 +19,7 @@ import ShareButton from "@/components/share-button";
 
 export interface EntryViewProps {
   version: string;
-  changelog: ChangelogEntry[];
+  changelog: ChangelogFile;
 }
 
 export default function EntryView({
@@ -32,7 +32,9 @@ export default function EntryView({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const entry = useMemo(() => {
-    return changelog.find((entry) => entry.version === version);
+    return changelog.entries.find(
+      (entry) => entry.version === version,
+    );
   }, [version, changelog]);
 
   const allTags = useMemo(() => {
